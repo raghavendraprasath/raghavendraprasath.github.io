@@ -387,7 +387,8 @@ function renderAbout(){
     if(!href) return '';
     const ext = (k==='email') ? '' : ' target="_blank" rel="noopener"';
     const dv = (k==='resume') ? ' data-viewer="1"' : '';
-    return `<a href="${href}"${ext}${dv} aria-label="${label}">${ICONS[k]}${label}</a>`;
+    const cp = (k==='email') ? ` data-copy="${p.links.email}" title="${p.links.email}"` : '';
+    return `<a href="${href}"${ext}${dv}${cp} aria-label="${label}">${ICONS[k]}<span class="lbl">${label}</span></a>`;
   }).join('');
   const bio = p.bio.map((para,i)=>`<p>${i===0?`<span class="greet">${p.greeting}</span> &mdash; `:''}${para}</p>`).join('');
   document.getElementById('page-about').innerHTML =
@@ -423,7 +424,7 @@ function renderProjects(){
 function init(){
   document.getElementById('brand-name').textContent = DATA.profile.name;
   document.getElementById('brand-sub').textContent = DATA.profile.location;
-  document.getElementById('footer-line').innerHTML = `© 2026 · ${DATA.profile.name} · <a href="mailto:${DATA.profile.links.email}">Contact</a>`;
+  document.getElementById('footer-line').innerHTML = `© 2026 · ${DATA.profile.name} · <a href="mailto:${DATA.profile.links.email}" data-copy="${DATA.profile.links.email}" title="Click to copy"><span class="lbl">${DATA.profile.links.email}</span></a>`;
   renderAbout(); renderEntries('work'); renderEntries('education'); renderSkills(); renderProjects();
 
   const tabs = document.querySelectorAll('#tabs button');
@@ -469,6 +470,15 @@ function init(){
     if(lastFocus && lastFocus.focus) lastFocus.focus();
   }
   document.addEventListener('click', function(e){
+    const cp = e.target.closest('a[data-copy]');
+    if(cp && e.button===0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && navigator.clipboard){
+      e.preventDefault();
+      navigator.clipboard.writeText(cp.getAttribute('data-copy')).then(function(){
+        const lbl = cp.querySelector('.lbl');
+        if(lbl){ const o = lbl.textContent; lbl.textContent = 'Copied!'; setTimeout(function(){ lbl.textContent = o; }, 1500); }
+      }).catch(function(){});
+      return;
+    }
     const a = e.target.closest('a[data-viewer]');
     if(a && e.button===0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey){
       e.preventDefault();
